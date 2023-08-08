@@ -1,6 +1,6 @@
 // build off the wonderful work of https://github.com/haywirecoder/homebridge-flobymoen
 
-import sdk from '@scrypted/sdk'
+import sdk, { AdoptDevice, DiscoveredDevice } from '@scrypted/sdk'
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { Device, DeviceDiscovery, DeviceProvider, ScryptedDeviceBase, ScryptedDeviceType, ScryptedInterface, Setting, Settings, SettingValue } from '@scrypted/sdk';
 import { StorageSettings } from "@scrypted/sdk/storage-settings"
@@ -67,6 +67,12 @@ export class MoenPlugin extends ScryptedDeviceBase implements DeviceDiscovery, D
     constructor(nativeId?: string) {
         super(nativeId);
         this.discoverDevices();
+    }
+    releaseDevice(id: string, nativeId: string): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    adoptDevice(device: AdoptDevice): Promise<string> {
+        throw new Error('Method not implemented.');
     }
 
     getSettings(): Promise<Setting[]> {
@@ -201,7 +207,7 @@ export class MoenPlugin extends ScryptedDeviceBase implements DeviceDiscovery, D
         }
     }
 
-    async discoverDevices(duration?: number): Promise<void> {
+    async discoverDevices(scan?: boolean): Promise<DiscoveredDevice[]> {
 
          if (!this.loggedIn) {
             await this.refreshToken();
@@ -209,6 +215,7 @@ export class MoenPlugin extends ScryptedDeviceBase implements DeviceDiscovery, D
 
         const { userId } = this.storageSettings.values.authToken;
         const requestConfig = this.requestConfig;
+        const devices: Device[] = [];
 
         // Create path for locations listing
         var url = baseUrlV2 + "/users/" + userId + "?expand=locations";
@@ -227,11 +234,29 @@ export class MoenPlugin extends ScryptedDeviceBase implements DeviceDiscovery, D
 
                     if (error)
                         this.console.error("Flo Device Load Error: " + error.message);
+                    else 
+                        devices.push(device);
                 }
             }
         } catch(err) {
             this.console.error("Flo Location Load Error: " + err.message);
         }
+
+        return devices.map(d => {
+            return {
+                name: d.name,
+                description: d.nativeId,
+                nativeId: d.nativeId,
+                type: d.type,
+                interfaces: d.interfaces,
+                info: d.info,
+                settings: [
+                    { key: "serialNumber", value: d.info.serialNumber },
+                    { key: "productType", value: d.info.metadata.productType },
+                    { key: "localPassword", value: d.info.metadata.localPasswordHash }
+                ]
+            } as DiscoveredDevice;
+        });
     }
 
     async getDevice(nativeId: string): Promise<MoenBase> {
