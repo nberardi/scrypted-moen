@@ -3,6 +3,9 @@
 .AppleDouble
 .LSOverride
 
+# Compile
+out
+
 # Logs
 logs
 *.log
