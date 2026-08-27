@@ -1,6 +1,6 @@
 {
   "name": "scrypted-moen",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Scrypted plugin for Moen",
   "author": "nberardi",
   "license": "MIT",
@@ -50,11 +50,10 @@
     ]
   },
   "dependencies": {
-    "@types/node": "^16.11.7",
     "axios": "^1.3.3"
   },
   "devDependencies": {
-    "@scrypted/sdk": "^0.1.18",
+    "@scrypted/sdk": "^0.2.103",
     "webpack-bundle-analyzer": "^4.5.0"
   }
 }
